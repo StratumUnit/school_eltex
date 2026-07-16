@@ -1,0 +1,264 @@
+1. Запустите новую сессию с именем "`whoami`_part2". Все команды сохраняйте в файле $USER_part.log, проследите за тем, чтобы он не содержал esc-последовательности форматирования и расцветки.
+
+eltex-v40@eltex-2026-summer:~$ screen -S $(whoami)_part2
+[detached from 1481355.eltex-v40_part2]
+eltex-v40@eltex-2026-summer:~$ screen -ls
+There is a screen on:
+	1481355.eltex-v40_part2	(09.07.2026 19:08:31)	(Detached)
+1 Socket in /run/screen/S-eltex-v40.
+
+
+2. С помощью механизма дополнения имен команд выведите все команды, которые начинаются на «ls».
+
+eltex-v40@eltex-2026-summer:~$ ls
+ls           lsb_release  lsinitramfs  lslocks      lsmod        lspci
+lsattr       lscpu        lsipc        lslogins     lsns         lsusb
+lsblk        lsfd         lsirq        lsmem        lsof  
+
+3. С помощью механизма дополнения имен переменных выведите все переменные, которые начинаются с «HIST».
+
+eltex-v40@eltex-2026-summer:~$ $HIST
+$HISTCMD       $HISTCONTROL   $HISTFILE      $HISTFILESIZE  $HISTSIZE 
+
+4. Узнайте, сколько команд может храниться в файле истории.
+
+eltex-v40@eltex-2026-summer:~$ echo $HISTFILESIZE
+2000
+
+5. Выведите имена файлов и каталогов из домашнего каталога, которые начинаются с «.».
+
+eltex-v40@eltex-2026-summer:~$ find /home/eltex-v40 -maxdepth 1 -name ".*"
+/home/eltex-v40/.viminfo
+/home/eltex-v40/.config
+/home/eltex-v40/.ssh
+/home/eltex-v40/.profile
+/home/eltex-v40/.screenrc
+/home/eltex-v40/.lesshst
+/home/eltex-v40/.bash_logout
+/home/eltex-v40/.log
+/home/eltex-v40/.terminfo
+/home/eltex-v40/.local
+/home/eltex-v40/.bash_history
+/home/eltex-v40/.bashrc
+
+6. Настройте вывод даты выполнения команд, хранящихся в истории.
+
+eltex-v40@eltex-2026-summer:~$ echo 'HISTTIMEFORMAT="%d-%m-%y "' >> ~/.bashrc
+eltex-v40@eltex-2026-summer:~$ source ~/.bashrc
+eltex-v40@eltex-2026-summer:~$ history 2
+  300  09-07-26 date
+  301  09-07-26 history 2
+
+7. Настройте автоматическое сохранение набираемых команд в файле истории:
+	введите любую команду, например, команду date;
+	проверьте, есть ли эта команда в кэше и файле истории команд;
+	определить переменную PROMPT_COMMAND так, чтобы кэш истории сохранялся в файле истории;
+	ввести любую команду и проверить, появилась ли эта команда в кэше и файле истории.
+
+eltex-v40@eltex-2026-summer:~$ date
+Чт 09 июл 2026 22:43:01 +07
+
+eltex-v40@eltex-2026-summer:~$ history 2
+  332  09-07-26 date
+  333  09-07-26 history 2
+
+eltex-v40@eltex-2026-summer:~$ tail -n 4 .bash_history 
+#1783611732
+source .bashrc
+#1783611736
+echo $PROMPT_COMMAND
+
+eltex-v40@eltex-2026-summer:~$ echo 'PROMPT_COMMAND="history -a"' >> ~/.bashrc
+eltex-v40@eltex-2026-summer:~$ source .bashrc
+eltex-v40@eltex-2026-summer:~$ echo $PROMPT_COMMAND
+history -a
+eltex-v40@eltex-2026-summer:~$ date
+Чт 09 июл 2026 22:52:04 +07
+eltex-v40@eltex-2026-summer:~$ tail -n 5 .bash_history 
+source .bashrc
+#1783612321
+echo $PROMPT_COMMAND
+#1783612324
+date
+
+eltex-v40@eltex-2026-summer:~$ history 3
+  350  09-07-26 date
+  351  09-07-26 tail -n 5 .bash_history 
+  352  09-07-26 history 3
+
+8. Создайте переменную DATE, в которую запишите текущую дату. Проверьте содержимое переменной.
+
+eltex-v40@eltex-2026-summer:~$ DATE=$(date +%F)
+eltex-v40@eltex-2026-summer:~$ echo $DATE
+2026-07-09
+
+9. Создайте переменную TIME, в которую запишите текущее время. Проверьте содержимое переменной.
+
+eltex-v40@eltex-2026-summer:~$ TIME=$(date +%T)
+eltex-v40@eltex-2026-summer:~$ echo $TIME
+23:16:17
+
+10 .Создайте переменную DATE_TIME в которую поместите значения из переменных DATE и TIME, разделенных пробелом. Проверьте содержимое переменной.
+
+eltex-v40@eltex-2026-summer:~$ DATE_TIME="$DATE $TIME"
+eltex-v40@eltex-2026-summer:~$ echo $DATE_TIME 
+2026-07-09 23:16:17
+
+11. Выведите имена файлов, содержащие хотя бы одну цифру, из каталогов /bin и /sbin.
+
+find -L /bin /sbin -type f -name "*[0-9]*" -printf "%f\n"
+ping4
+pod2html
+python3.11
+ssh-argv0
+c99-gcc
+x86_64-linux-gnu-gcc-ar-12
+base64
+gcov-dump-12
+x86_64-linux-gnu-gcc-ranlib-12
+enc2xs
+x86_64-linux-gnu-gcc
+gcov-tool-12
+x86_64-linux-gnu-gcov-12
+pod2usage
+x86_64-linux-gnu-lto-dump
+x86_64
+x86_64-linux-gnu-objdump
+addr2line
+sha224sum
+py3versions
+linux32
+x86_64-linux-gnu-objcopy
+bzip2
+pdb3
+gcc-12
+x86_64-linux-gnu-readelf
+x86_64-linux-gnu-gcov-dump
+x86_64-linux-gnu-ar
+grub-mkpasswd-pbkdf2
+x86_64-linux-gnu-gcov-tool
+traceroute6.db
+md5sum
+bzip2recover
+grub-menulst2cfg
+x86_64-linux-gnu-cpp-12
+x86_64-linux-gnu-size
+x86_64-linux-gnu-gprofng
+x86_64-linux-gnu-ld
+x86_64-linux-gnu-gprof
+h2xs
+x86_64-linux-gnu-gcc-ranlib
+x86_64-linux-gnu-ranlib
+x86_64-linux-gnu-ld.gold
+x86_64-linux-gnu-as
+x86_64-linux-gnu-gold
+pod2text
+pydoc3
+x86_64-linux-gnu-nm
+x86_64-linux-gnu-elfedit
+x86_64-linux-gnu-strip
+x86_64-linux-gnu-gcc-nm-12
+perl5.36.0
+x86_64-linux-gnu-ld.bfd
+pydoc3.11
+x86_64-linux-gnu-gcov-tool-12
+b2sum
+c89
+lto-dump-12
+x86_64-linux-gnu-cpp
+x86_64-linux-gnu-lto-dump-12
+pod2man
+sha1sum
+c89-gcc
+x86_64-linux-gnu-gcc-nm
+pl2pm
+ping6
+h2ph
+x86_64-linux-gnu-c++filt
+x86_64-linux-gnu-gcc-ar
+sha512sum
+python3
+x86_64-linux-gnu-gcc-12
+gcc-ranlib-12
+x86_64-linux-gnu-gp-display-src
+base32
+pygettext3
+x86_64-linux-gnu-gp-collect-app
+x86_64-linux-gnu-gcov
+cpan5.36-x86_64-linux-gnu
+md5sum.textutils
+x86_64-linux-gnu-gp-archive
+sha384sum
+py3clean
+x86_64-linux-gnu-gcov-dump-12
+pdb3.11
+perl5.36-x86_64-linux-gnu
+c99
+x86_64-linux-gnu-strings
+linux64
+x86_64-linux-gnu-gp-display-html
+pygettext3.11
+systemd-id128
+x86_64-linux-gnu-dwp
+gcov-12
+i386
+bunzip2
+cpp-12
+x86_64-linux-gnu-gp-display-text
+x86_64-linux-gnu-addr2line
+py3compile
+grub-syslinux2cfg
+traceroute6
+diff3
+gcc-nm-12
+gcc-ar-12
+sha256sum
+dumpe2fs
+e2fsck
+mkfs.ext3
+e2freefrag
+e2undo
+e2scrub_all
+tune2fs
+e2image
+e2label
+e4defrag
+e2mmpstatus
+mke2fs
+mkfs.ext4
+mkfs.ext2
+e4crypt
+killall5
+fsck.ext3
+fsck.ext2
+e2scrub
+resize2fs
+fsck.ext4
+update-grub2
+
+12. Измените приглашение так, чтобы выводились имя хоста, имя пользователя и время: имя_пользователя@имя_хоста-HH:MM>  (Используйте переменные bash и команду date)
+
+eltex-v40@eltex-2026-summer:/$PS1="\[\e]0;\u@\h-\$(date +"%H:%M")> \w\a\]${debian_chroot:+($debian_chroot)}\u@\h-\$(date +"%H:%M")>\w\$"
+eltex-v40@eltex-2026-summer-01:06>/$
+
+13. Сделайте так, чтобы в запускаемом интерпретаторе bash выводилось приглашение, установленное в родительском интерпретаторе bash.
+
+eltex-v40@eltex-2026-summer-$(date +"%H:%M")>/$ vi ~/.bashrc
+
+if [ "$color_prompt" = yes ]; then
+        PS1="${debian_chroot:+($debian_chroot)}\[\033[01;32m\]\u@\h-\$(date +"%H:%M")\[\033[00m\]>\[\033[01;34m\]\w\[\033[00m\]\$ "
+else
+        PS1="${debian_chroot:+($debian_chroot)}\u@\h-\$(date +"%H:%M")>\w\$ "
+fi
+
+eltex-v40@eltex-2026-summer-$(date +"%H:%M")>/$ source ~/.bashrc
+eltex-v40@eltex-2026-summer-01:51>/$ bash
+eltex-v40@eltex-2026-summer-01:51>/$ 
+
+14. Одной командной строкой создайте в домашнем каталоге подкаталоги для каждого месяца текущего года вида YYYY-MM(год реализуйте с помощью команды date и командной подстановки). 
+
+eltex-v40@eltex-2026-summer-02:06>~$ printf "%s\n" {01..12} | xargs -I {} mkdir "$(date +%Y)-{}"
+eltex-v40@eltex-2026-summer-02:06>~$ ls
+2026-01  2026-04  2026-07  2026-10  eltex                 Practice_1_chapter_1.odt
+2026-02  2026-05  2026-08  2026-11  eltex-v40_part.log    report_part1.txt
+2026-03  2026-06  2026-09  2026-12  Practice_1_chapter_1

@@ -1,0 +1,414 @@
+1. На сервере первой практики создадим ssh ключ
+
+ssh-keygen
+Generating public/private rsa key pair.
+Enter file in which to save the key (/home/eltex-v40/.ssh/id_rsa): 
+/home/eltex-v40/.ssh/id_rsa already exists.
+Overwrite (y/n)? y
+Enter passphrase (empty for no passphrase): 
+Enter same passphrase again: 
+Your identification has been saved in /home/eltex-v40/.ssh/id_rsa
+Your public key has been saved in /home/eltex-v40/.ssh/id_rsa.pub
+The key fingerprint is:
+SHA256:92aLjfUPfWWWdRVB3QHFMC5eYY2yEBJ5Fgfa9jxbk1s eltex-v40@eltex-2026-summer
+The key's randomart image is:
++---[RSA 3072]----+
+|       oo++. *O*B|
+|       .++..o.oo+|
+|       .oo..oo  o|
+|        . +.o . +|
+|        S .= + E+|
+|         . .+ ++.|
+|           .=.. o|
+|           B o ..|
+|          o o ...|
++----[SHA256]-----+
+
+
+2. Скопируем публичный ключ клиента на сервер второй практики для пользователя root.
+
+eltex-v40@eltex-2026-summer:~/eltex/module1/task2$ ssh-copy-id -i ~/.ssh/id_rsa.pub root@172.16.9.214
+/usr/bin/ssh-copy-id: INFO: Source of key(s) to be installed: "/home/eltex-v40/.ssh/id_rsa.pub"
+/usr/bin/ssh-copy-id: INFO: attempting to log in with the new key(s), to filter out any that are already installed
+/usr/bin/ssh-copy-id: INFO: 1 key(s) remain to be installed -- if you are prompted now it is to install the new keys
+root@172.16.9.214's password: 
+
+Number of key(s) added: 1
+
+Now try logging into the machine, with:   "ssh 'root@172.16.9.214'"
+and check to make sure that only the key(s) you wanted were added.
+
+3. Подключитесь к серверу для 2 практики под пользователем root и сравните содержимое файла открытого ключа на сервере 1 ~/.ssh/*.pub и файла ~/.ssh/authorized_keys на сервере для 2 практики, а так же права доступа для каждого из файлов.
+
+
+eltex-v40@eltex-2026-summer:~/eltex/module1/task2$ ssh root@172.16.9.214
+Enter passphrase for key '/home/eltex-v40/.ssh/id_rsa': 
+Welcome to Ubuntu 24.04.2 LTS (GNU/Linux 6.8.0-55-generic x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/pro
+
+ System information as of Wed Jul  8 04:54:02 AM UTC 2026
+
+  System load:  0.05               Processes:              111
+  Usage of /:   37.8% of 14.66GB   Users logged in:        0
+  Memory usage: 5%                 IPv4 address for ens18: 172.16.9.214
+  Swap usage:   0%
+
+
+Expanded Security Maintenance for Applications is not enabled.
+
+0 updates can be applied immediately.
+
+Enable ESM Apps to receive additional future security updates.
+See https://ubuntu.com/esm or run: sudo pro status
+
+
+The list of available updates is more than a week old.
+To check for new updates run: sudo apt update
+
+Last login: Wed Jul  8 04:54:03 2026 from 172.16.8.4
+root@eltex-practice2-v40:~# 
+
+//ключ на сервере второй практики
+
+root@eltex-practice2-v40:~# ssh-keygen -l -f ~/.ssh/authorized_keys
+3072 SHA256:92aLjfUPfWWWdRVB3QHFMC5eYY2yEBJ5Fgfa9jxbk1s eltex-v40@eltex-2026-summer (RSA)
+
+root@eltex-practice2-v40:~/.ssh# stat authorized_keys 
+  File: authorized_keys
+  Size: 581       	Blocks: 8          IO Block: 4096   regular file
+Device: 252,0	Inode: 656261      Links: 1
+Access: (0600/-rw-------)  Uid: (    0/    root)   Gid: (    0/    root)
+Access: 2026-07-08 04:53:19.432979525 +0000
+Modify: 2026-07-08 04:49:31.430445455 +0000
+Change: 2026-07-08 04:49:31.430445455 +0000
+ Birth: 2025-03-12 18:17:59.164000000 +0000
+
+
+//ключ на сервере первой практики
+
+eltex-v40@eltex-2026-summer:~/.ssh$ ssh-keygen -l -f id_rsa
+3072 SHA256:92aLjfUPfWWWdRVB3QHFMC5eYY2yEBJ5Fgfa9jxbk1s eltex-v40@eltex-2026-summer (RSA)
+
+eltex-v40@eltex-2026-summer:~/.ssh$ stat id_rsa.pub 
+  File: id_rsa.pub
+  Size: 581       	Blocks: 8          IO Block: 4096   regular file
+Device: 254,2	Inode: 655497      Links: 1
+Access: (0644/-rw-r--r--)  Uid: ( 1101/eltex-v40)   Gid: ( 1101/eltex-v40)
+Access: 2026-07-08 11:48:42.275333205 +0700
+Modify: 2026-07-08 11:44:04.373172096 +0700
+Change: 2026-07-08 11:44:04.373172096 +0700
+ Birth: 2026-07-08 11:44:04.373172096 +0700
+
+
+4. Создайте пользователя user1 при помощи команды useradd, укажите необходимость создания домашнего каталога и shell /bin/bash. Создайте пароль пользователю user1
+
+root@eltex-practice2-v40:~/.ssh# useradd user1 -m -s /bin/bash
+root@eltex-practice2-v40:~/.ssh# passwd user1
+New password: 
+Retype new password: 
+passwd: password updated successfully
+
+5.  Создайте пользователя user2 и user3 при помощи команды adduser
+root@eltex-practice2-v40:/# adduser user2
+info: Adding user `user2' ...
+info: Selecting UID/GID from range 1000 to 59999 ...
+info: Adding new group `user2' (1002) ...
+info: Adding new user `user2' (1002) with group `user2 (1002)' ...
+info: Creating home directory `/home/user2' ...
+info: Copying files from `/etc/skel' ...
+New password: 
+Retype new password: 
+passwd: password updated successfully
+Changing the user information for user2
+Enter the new value, or press ENTER for the default
+	Full Name []: 
+	Room Number []: 
+	Work Phone []: 
+	Home Phone []: 
+	Other []: 
+Is the information correct? [Y/n] y
+info: Adding new user `user2' to supplemental / extra groups `users' ...
+info: Adding user `user2' to group `users' ...
+root@eltex-practice2-v40:/# adduser user3
+info: Adding user `user3' ...
+info: Selecting UID/GID from range 1000 to 59999 ...
+info: Adding new group `user3' (1003) ...
+info: Adding new user `user3' (1003) with group `user3 (1003)' ...
+info: Creating home directory `/home/user3' ...
+info: Copying files from `/etc/skel' ...
+New password: 
+Retype new password: 
+passwd: password updated successfully
+Changing the user information for user3
+Enter the new value, or press ENTER for the default
+	Full Name []: 
+	Room Number []: 
+	Work Phone []: 
+	Home Phone []: 
+	Other []: 
+Is the information correct? [Y/n] y
+info: Adding new user `user3' to supplemental / extra groups `users' ...
+info: Adding user `user3' to group `users' ...
+root@eltex-practice2-v40:/# cd home
+root@eltex-practice2-v40:/home# ls
+tech  user2  user3
+
+
+6. Для пользователя user3 смените shell на /usr/sbin/nologin (man usermod), выполните вход под этим пользователем при помощи утилиты su, сначала без дополнительных параметров, затем с явным указанием shell /bin/bash в параметрах su. Выполните logout
+
+root@eltex-practice2-v40:/home# su user3
+This account is currently not available.
+root@eltex-practice2-v40:/home# su -s /bin/bash user3
+user3@eltex-practice2-v40:/home$ exit
+exit
+root@eltex-practice2-v40:/home#
+
+
+7.Создайте новую группу и добавьте её для всех пользователей user* как дополнительную, посмотрите список групп всех пользователей user*
+
+root@eltex-practice2-v40:/home# groupadd mygroup
+root@eltex-practice2-v40:/home# usermod -aG mygroup user1
+root@eltex-practice2-v40:/home# usermod -aG mygroup user2
+root@eltex-practice2-v40:/home# usermod -aG mygroup user3
+root@eltex-practice2-v40:/home# groups user1
+user1 : user1 mygroup
+root@eltex-practice2-v40:/home# groups user2
+user2 : user2 mygroup
+root@eltex-practice2-v40:/home# groups user3
+user3 : user3 mygroup
+
+
+8. Создайте каталог /opt/share и назначьте группу из предыдущего пункта его владельцем, установите на этот каталог бит SGID, права для группы rwx.
+
+root@eltex-practice2-v40:/# mkdir -p /opt/share
+root@eltex-practice2-v40:/# cd /opt && ls
+share
+root@eltex-practice2-v40:/opt# chown :mygroup /opt/share/
+root@eltex-practice2-v40:/opt# stat share
+  File: share
+  Size: 4096      	Blocks: 8          IO Block: 4096   directory
+Device: 252,0	Inode: 525995      Links: 2
+Access: (0755/drwxr-xr-x)  Uid: (    0/    root)   Gid: ( 1004/ mygroup)
+Access: 2026-07-08 06:50:34.110027257 +0000
+Modify: 2026-07-08 06:50:34.110027257 +0000
+Change: 2026-07-08 06:53:46.133638796 +0000
+ Birth: 2026-07-08 06:50:34.110027257 +0000
+
+root@eltex-practice2-v40:/opt# chmod g+rwx /opt/share/
+root@eltex-practice2-v40:/opt# chmod g+s share
+root@eltex-practice2-v40:/opt# ls -l      
+total 4
+drwxrwsr-x 2 root mygroup 4096 Jul  8 06:50 share
+
+
+9. Для user1 задайте перманентно umask, снимающий право чтения для «прочих»
+
+sudo - user1
+
+echo "umask 027" >> ~/.bashrc
+
+
+
+10. Создайте каждым из пользователей новые файлы в каталоге /opt/share, удалите файлы созданные другими пользователями
+
+user1@eltex-practice2-v40:~$ cd /opt/share
+user1@eltex-practice2-v40:/opt/share$ ls
+user1@eltex-practice2-v40:/opt/share$ touch user1_file.txt
+user1@eltex-practice2-v40:/opt/share$ ls -l
+total 0
+-rw-rw---- 1 user1 mygroup 0 Jul 12 13:18 user1_file.txt
+
+root@eltex-practice2-v40:/opt# su - user2
+user2@eltex-practice2-v40:~$ cd /opt/share/
+user2@eltex-practice2-v40:/opt/share$ ls
+user1_file.txt
+user2@eltex-practice2-v40:/opt/share$ touch user2_file.txt
+user2@eltex-practice2-v40:/opt/share$ ls -l
+total 0
+-rw-rw---- 1 user1 mygroup 0 Jul 12 13:18 user1_file.txt
+-rw-rw-r-- 1 user2 mygroup 0 Jul 12 13:19 user2_file.txt
+user2@eltex-practice2-v40:/opt/share$ rm user1_file.txt 
+user2@eltex-practice2-v40:/opt/share$ ls
+user2_file.txt
+
+
+root@eltex-practice2-v40:/opt# su -s /bin/bash user3
+user3@eltex-practice2-v40:/opt$ cd /opt/share
+user3@eltex-practice2-v40:/opt/share$ touch user3_file.txt
+user3@eltex-practice2-v40:/opt/share$ ls
+user2_file.txt  user3_file.txt
+user3@eltex-practice2-v40:/opt/share$ rm user2_file.txt 
+user3@eltex-practice2-v40:/opt/share$ ls
+user3_file.txt
+
+root@eltex-practice2-v40:/opt# su - user1           
+user1@eltex-practice2-v40:~$ rm /opt/share/user3_file.txt 
+user1@eltex-practice2-v40:~$ ls /opt/share
+
+
+
+11. Повторите предыдущий пункт, предварительно установив sticky bit на каталоге /opt/share
+
+root@eltex-practice2-v40:/opt# chmod +t share/
+root@eltex-practice2-v40:/opt# stat share     
+  File: share
+  Size: 4096      	Blocks: 8          IO Block: 4096   directory
+Device: 252,0	Inode: 525995      Links: 2
+Access: (3775/drwxrwsr-t)  Uid: (    0/    root)   Gid: ( 1004/ mygroup)
+Access: 2026-07-12 13:29:51.085617122 +0000
+Modify: 2026-07-12 13:29:48.313567903 +0000
+Change: 2026-07-12 13:42:12.880879999 +0000
+ Birth: 2026-07-08 06:50:34.110027257 +0000
+
+root@eltex-practice2-v40:/opt# su - user1
+user1@eltex-practice2-v40:~$ 
+user1@eltex-practice2-v40:~$ touch /opt/share/user1_file.txt
+user1@eltex-practice2-v40:~$ exit
+logout
+root@eltex-practice2-v40:/opt# su - user2
+user2@eltex-practice2-v40:~$ touch /opt/share/user2_file.txt
+user2@eltex-practice2-v40:~$ exit
+logout
+root@eltex-practice2-v40:/opt# su -s /bin/bash user3
+user3@eltex-practice2-v40:/opt$ touch share/user3.txt
+
+root@eltex-practice2-v40:/opt# su - user1             
+user1@eltex-practice2-v40:~$ ls /opt/share/
+user1_file.txt  user2_file.txt  user3.txt
+user1@eltex-practice2-v40:~$ rm /opt/share/user2_file.txt 
+rm: cannot remove '/opt/share/user2_file.txt': Operation not permitted
+user1@eltex-practice2-v40:~$ exit
+logout
+root@eltex-practice2-v40:/opt# su - user2
+user2@eltex-practice2-v40:~$ rm /opt/share/user1_file.txt 
+rm: remove write-protected regular empty file '/opt/share/user1_file.txt'? y
+rm: cannot remove '/opt/share/user1_file.txt': Operation not permitted
+user2@eltex-practice2-v40:~$ exit                         
+logout
+root@eltex-practice2-v40:/opt# su -s /bin/bash user3  
+user3@eltex-practice2-v40:/opt$ rm /opt/share/user1_file.txt 
+rm: remove write-protected regular empty file '/opt/share/user1_file.txt'? y
+rm: cannot remove '/opt/share/user1_file.txt': Operation not permitted
+user3@eltex-practice2-v40:/opt$ rm /opt/share/user2_file.txt 
+
+12. Разрешите user1 выполнять привилегированную команду dmesg при помощи команды sudo, а user2 – при помощи скрипта на языке bash с установленным флагом SUID
+
+//Изменим файл sudoers, для этого используется утилита visudo
+root@eltex-practice2-v40:/opt# TERM=xterm visudo
+
+//Добавим строку
+user1 ALL=(ALL:ALL) /usr/bin/dmesg
+
+root@eltex-practice2-v40:/opt# su - user1       
+user1@eltex-practice2-v40:~$ sudo dmesg | head
+[    0.000000] Linux version 6.8.0-134-generic (buildd@lcy02-amd64-007) (x86_64-linux-gnu-gcc-13 (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0, GNU ld (GNU Binutils for Ubuntu) 2.42) #134-Ubuntu SMP PREEMPT_DYNAMIC Fri Jun 26 18:43:11 UTC 2026 (Ubuntu 6.8.0-134.134-generic 6.8.12)
+[    0.000000] Command line: BOOT_IMAGE=/vmlinuz-6.8.0-134-generic root=/dev/mapper/ubuntu--vg-ubuntu--lv ro
+[    0.000000] KERNEL supported cpus:
+[    0.000000]   Intel GenuineIntel
+[    0.000000]   AMD AuthenticAMD
+[    0.000000]   Hygon HygonGenuine
+[    0.000000]   Centaur CentaurHauls
+[    0.000000]   zhaoxin   Shanghai  
+[    0.000000] BIOS-provided physical RAM map:
+[    0.000000] BIOS-e820: [mem 0x0000000000000000-0x000000000009fbff] usable
+
+root@eltex-practice2-v40:~# touch /usr/local/bin/dmesgExec.sh
+root@eltex-practice2-v40:~# chmod u+s /usr/local/bin/dmesgExec.sh 
+root@eltex-practice2-v40:~# chmod +x /usr/local/bin/dmesgExec.sh 
+root@eltex-practice2-v40:~# ls -l /usr/local/bin/                             
+total 4
+-rwsr-xr-x 1 root root 18 Jul 12 16:09 dmesgExec.sh
+
+root@eltex-practice2-v40:~# su - user2 
+user2@eltex-practice2-v40:~$ /usr/local/bin/dmesgExec.sh 
+dmesg: read kernel buffer failed: Operation not permitted
+
+//SUID игнорируется для файлов скриптов
+
+13. Для всех пользователей user* задайте время действия пароля – 10 дней.
+root@eltex-practice2-v40:~# chage -M 10 user1
+root@eltex-practice2-v40:~# chage -M 10 user2
+root@eltex-practice2-v40:~# chage -M 10 user3
+root@eltex-practice2-v40:~# chage -l user1   
+Last password change					: Jul 08, 2026
+Password expires					: Jul 18, 2026
+Password inactive					: never
+Account expires						: never
+Minimum number of days between password change		: 0
+Maximum number of days between password change		: 10
+Number of days of warning before password expires	: 7
+
+14. Отредактируйте файл /etc/motd, вписав туда свое имя и фамилию
+
+echo "Ivan Shmakov" >> /etc/motd
+
+Ivan Shmakov
+
+Last login: Sun Jul 12 09:27:17 2026 from 172.16.8.4
+root@eltex-practice2-v40:~# 
+
+15. Создайте копию содержимого каталога /etc в каталог /root/etc_backup при помощи программы rsync
+
+root@eltex-practice2-v40:~# rsync -a /etc/ /root/etc_backup/
+root@eltex-practice2-v40:~# ls /root/etc_backup/
+adduser.conf                   grub.d           mtab                 sensors3.conf
+alternatives                   gshadow          multipath            sensors.d
+...
+
+16. Заархивируйте содержимое каталога /root/etc_backup архиватором tar, используйте алгоритмы сжатия gzip, bzip2, 7zip, сравните размеры полученных файлов
+
+root@eltex-practice2-v40:~# tar -czf ~/etc_backup.tar.gz ~/etc_backup
+root@eltex-practice2-v40:~# tar -cjf ~/etc_backup.tar.bz2 ~/etc_backup
+root@eltex-practice2-v40:~# tar -cf ~/etc_backup.tar ~/etc_backup
+root@eltex-practice2-v40:~# 7z a ~/etc_backup.tar.7z ~/etc_backup.tar
+
+root@eltex-practice2-v40:~# ls -lh ~
+total 12M
+drwxr-xr-x 109 root root 4.0K Jul 12 16:29 etc_backup
+-rw-r--r--   1 root root 3.3M Jul 13 04:42 etc_backup.tar
+-rw-r--r--   1 root root 456K Jul 13 04:44 etc_backup.tar.7z
+-rw-r--r--   1 root root 526K Jul 13 04:33 etc_backup.tar.bz2
+-rw-r--r--   1 root root 563K Jul 13 04:26 etc_backup.tar.gz
+
+
+17. Отредактируйте файл /etc/motd, вписав туда текущую дату и время, синхронизируйте каталог /root/etc_backup с каталогом /etc при помощи rsync, добавьте файл motd в архив, сжатый gzip
+
+root@eltex-practice2-v40:~# vi /etc/motd
+
+//При перезаходе
+Ivan Shmakov 13.07.2026 13:03
+
+Last login: Mon Jul 13 04:15:40 2026 from 172.16.8.4
+
+oot@eltex-practice2-v40:~# rsync -a /etc/ /root/etc_backup/
+root@eltex-practice2-v40:~# ls -l /root/etc_backup/motd
+-rw-r--r-- 1 root root 31 Jul 13 05:35 /root/etc_backup/motd
+
+root@eltex-practice2-v40:~# tar -czf /root/etc_backup.tar.gz -C /root etc_backup
+
+
+18. Сравните содержимое архива, упакованного bzip2 с сорержимым каталога /root/etc_backup
+
+root@eltex-practice2-v40:~# tar -djf /root/etc_backup.tar.bz2 
+etc_backup/motd: Mod time differs
+etc_backup/motd: Size differs
+
+
+19. Распакуйте архивы etc_backup, упакованные gzip и 7zip в каталоги /root/etc_backup_gzip и /root/etc_backup_7zip, сравните программой diff файлы motd в этих каталогах.
+
+root@eltex-practice2-v40:~# mkdir etc_backup_gzip
+root@eltex-practice2-v40:~# tar -xzf etc_backup.tar.gz -C /root/etc_backup_gzip
+
+root@eltex-practice2-v40:~# 7z x /root/etc_backup.tar.7z -o/root/etc_backup_7zip
+root@eltex-practice2-v40:~/etc_backup_7zip# tar -xf etc_backup.tar
+
+root@eltex-practice2-v40:~# diff -u etc_backup_gzip/etc_backup/motd etc_backup_7zip/etc_backup/motd 
+--- etc_backup_gzip/etc_backup/motd	2026-07-13 05:46:05.000000000 +0000
++++ etc_backup_7zip/etc_backup/motd	2026-07-13 05:59:02.000000000 +0000
+@@ -1,2 +1,2 @@
+-Ivan Shmakov 13.07.2026 12:46 
++Ivan Shmakov 
+
