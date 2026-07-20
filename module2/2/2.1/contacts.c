@@ -6,13 +6,13 @@
 
 int initPhoneBook(struct Entry *entry, int n) {
   if (entry == NULL)
-    return 0;
+    return -1;
 
   // выделяем память под запись контакта
   entry->contact = (struct Contact *)malloc(n * sizeof(struct Contact));
 
   if (entry->contact == NULL)
-    return 0;
+    return -2;
 
   entry->capacity = n;
   entry->initCapacity = n;
@@ -38,7 +38,7 @@ int pushContact(struct Entry *entry, int id, const char *firstname,
       return 0;
     }
   }
-
+  
   entry->size++;
   int num = entry->size - 1;
   entry->contact[num].id = id;

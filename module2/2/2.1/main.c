@@ -1,40 +1,38 @@
-#include "contacts.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include "contacts.h"
+#include "menu.h"
+
 
 int main(void) {
-
   int choice;
   struct Entry entry = {0};
   int initSize = 5;
-  int id;
+  int id = 1;
 
   while (1) {
-    printf("Меню\n");
-    printf("1. Инициализировать список\n");
-    printf("2. Добавить контакт\n");
-    printf("3. Удалить контакт\n");
-    printf("4. Редактировать контакт\n");
-    printf("6. Отобразить спсиок контактов\n");
-    printf("7. Выход\n");
+    printMenu();
+
     scanf("%d", &choice);
     switch (choice) {
 
     case 1:
 
-      initPhoneBook(&entry, initSize);
+      initContacts(&entry, initSize);
+      //initPhoneBook(&entry, initSize);
 
       break;
     case 2:
-
-      pushContact(&entry, 2113, "Ivan", "Ivanov", "Builder", "+76575634",
-                  "Russia", "Novosibirsk", "Pushkina");
+      
+      addContact(&entry, &id);
+      //pushContact(&entry, 2113, "Ivan", "Ivanov", "Builder", "+76575634",
+        //          "Russia", "Novosibirsk", "Pushkina");
       break;
 
     case 3:
 
       printf("индекс удаляемого элемента: ");
-      scanf("%d", &id);
+      //scanf("%d", &id);
       delContact(&entry, id);
       break;
 
