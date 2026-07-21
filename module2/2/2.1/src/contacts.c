@@ -25,22 +25,26 @@ int initPhoneBook(struct Entry *entry, int n) {
   return 1;
 }
 
-int pushContact(struct Entry *entry, int id, const char *firstname,
-                const char *lastName, const char *job, const char *phone,
-                const char *country, const char *city, const char *street) {
+int addContact(struct Entry *entry, int id, const char *firstname,
+               const char *lastName, const char *job, const char *phone,
+               const char *country, const char *city, const char *street) {
 
   if (entry == NULL || entry->contact == NULL) {
-    return 0;
+    return -1;
+  }
+
+  if (getIndex(entry, id) >= 0) {
+    return -3;
   }
 
   if (entry->size >= entry->capacity) {
-    if (!expandPhoneBook(entry)) {
-      return 0;
+    int expandResult = expandPhoneBook(entry);
+    if (expandResult <= 0) {
+      return expandResult;
     }
   }
-  
-  entry->size++;
-  int num = entry->size - 1;
+
+  int num = entry->size;
   entry->contact[num].id = id;
 
   snprintf(entry->contact[num].firstName, NAME_LEN, "%s", firstname);
@@ -52,13 +56,15 @@ int pushContact(struct Entry *entry, int id, const char *firstname,
   snprintf(entry->contact[num].address.city, CITY_LEN, "%s", city);
   snprintf(entry->contact[num].address.street, STREET_LEN, "%s", street);
 
+  entry->size++;
+  sortBook(entry);
   return 1;
 }
 
 int expandPhoneBook(struct Entry *entry) {
 
   if (entry == NULL || entry->contact == NULL) {
-    return 0;
+    return -1;
   }
   int newCapacity = entry->capacity * 2;
   size_t newSize = newCapacity * sizeof(struct Contact);
@@ -69,13 +75,13 @@ int expandPhoneBook(struct Entry *entry) {
     return 1;
   }
 
-  return 0;
+  return -2;
 }
 
 int shrinkPhoneBook(struct Entry *entry) {
 
   if (entry == NULL || entry->contact == NULL) {
-    return 0;
+    return -1;
   }
 
   int newCapacity = entry->capacity / 2;
@@ -92,16 +98,16 @@ int shrinkPhoneBook(struct Entry *entry) {
     return 1;
   }
 
-  return 0;
+  return -2;
 }
 
 int delContact(struct Entry *entry, int index) {
 
   if (entry == NULL || entry->contact == NULL) {
-    return 0;
+    return -1;
   }
   if (index < 0 || index >= entry->size) {
-    return 0;
+    return -2;
   }
 
   if (index < entry->size - 1) {
@@ -113,42 +119,57 @@ int delContact(struct Entry *entry, int index) {
   if (entry->size <= entry->capacity / 4) {
     shrinkPhoneBook(entry);
   }
-
+  sortBook(entry);
   return 1;
 }
-
 int printPhoneBook(struct Entry *entry) {
-
   if (entry == NULL || entry->contact == NULL) {
-    printf("Массив пуст");
+    return -1;
+  }
+
+  if (entry->size == 0) {
+    printf("\nТелефонная книга пуста. Нет записей для отображения\n");
     return 0;
   }
 
-  printf("PhoneBook\n");
-  printf("%-5s | %-15s | %-15s | %-15s | %-15s | %s\n", "ID", "Имя", "Фамилия",
-         "Телефон", "Работа", "Адрес (Страна, Город, Улица)");
-  printf("---------------------------------------------------------------------"
-         "---------------------\n");
-  for (int i = 0; i < entry->size; i++) {
+  printf("\n=================================== ТЕЛЕФОННАЯ КНИГА "
+         "===================================\n");
+  printf(" Записей: %d | Текущая емкость буфера: %d мест\n", entry->size,
+         entry->capacity);
+  printf("====================================================================="
+         "===================\n");
 
+  printf("%-6s | %-15s | %-15s | %-15s | %-15s | %s\n", "Id", "firstName",
+         "lastName", "phoneNumber", "job", "Address (Contry, City, Street)");
+  printf("---------------------------------------------------------------------"
+         "-------------------\n");
+
+  for (int i = 0; i < entry->size; i++) {
     struct Contact c = entry->contact[i];
 
-    printf("%-5d | %-15s | %-15s | %-15s | %-15s | %s, %s, %s\n", c.id,
-           c.firstName, c.lastName, c.phoneNumber, c.job, c.address.country,
-           c.address.city, c.address.street);
+    printf("%-6d | %-15.30s | %-15.30s | %-15.30s | %-15.30s | %s, %s, %s\n",
+           c.id, c.firstName, c.lastName, c.phoneNumber, c.job,
+           c.address.country, c.address.city, c.address.street);
+
+    if ((i + 1) % 20 == 0 && (i + 1) < entry->size) {
+      printf("\n--- Нажмите [Enter] для отображения следующих записей ---");
+      while (getchar() != '\n')
+        printf("\n");
+    }
   }
 
+  printf("====================================================================="
+         "===================\n");
   return 1;
 }
 int editContact(struct Entry *entry, int index, const char *format, ...) {
 
   if (entry == NULL || entry->contact == NULL) {
-    printf("error");
-    return 0;
+    return -1;
   }
 
   if (index < 0 || index >= entry->size)
-    return 0;
+    return -2;
 
   va_list ptr;
 
@@ -173,6 +194,10 @@ int editContact(struct Entry *entry, int index, const char *format, ...) {
       snprintf(entry->contact[index].job, JOB_LEN, "%s",
                va_arg(ptr, const char *));
       break;
+    case 'p':
+      snprintf(entry->contact[index].phoneNumber, PHONE_LEN, "%s",
+               va_arg(ptr, const char *));
+      break;
     case 'C':
       snprintf(entry->contact[index].address.country, COUNTRY_LEN, "%s",
                va_arg(ptr, const char *));
@@ -190,7 +215,7 @@ int editContact(struct Entry *entry, int index, const char *format, ...) {
     }
   }
   va_end(ptr);
-
+  sortBook(entry);
   return 1;
 }
 
@@ -204,5 +229,34 @@ int getIndex(struct Entry *entry, int id) {
       return i;
     }
   }
-  return -1;
+  return -2;
+}
+
+static int compareContactsByLastName(const void *a, const void *b) {
+  const struct Contact *contactA = (const struct Contact *)a;
+  const struct Contact *contactB = (const struct Contact *)b;
+
+  int res = strcmp(contactA->lastName, contactB->lastName);
+
+  // Если фамилии абсолютно одинаковые, сортируем по имени
+  if (res == 0) {
+    return strcmp(contactA->firstName, contactB->firstName);
+  }
+
+  return res;
+}
+
+// Сама функция сортировки всего справочника
+void sortBook(struct Entry *entry) {
+  if (entry == NULL || entry->contact == NULL || entry->size <= 1) {
+    return; // Сортировать нечего
+  }
+
+  // Вызываем встроенную быструю сортировку qsort:
+  // 1. Указатель на начало массива
+  // 2. Количество реальных элементов в массиве
+  // 3. Размер одной ячейки (структуры Contact)
+  // 4. Указатель на нашу функцию сравнения
+  qsort(entry->contact, entry->size, sizeof(struct Contact),
+        compareContactsByLastName);
 }
