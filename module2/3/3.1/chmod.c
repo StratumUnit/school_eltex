@@ -84,7 +84,8 @@ int changePermissions(char *cmd, int *bits) {
   char op;
   int permissions = 0;
   while (token != NULL) {
-
+    permissions = 0;
+    usersBitMask = 0;
     while (*token != '\0') {
 
       while (*token == 'u' || *token == 'g' || *token == 'o' || *token == 'a') {
@@ -109,11 +110,11 @@ int changePermissions(char *cmd, int *bits) {
 
       while (*token == 'r' || *token == 'w' || *token == 'x') {
         if (*token == 'r')
-          permissions |= 04; // чтение
+          permissions |= 04;
         if (*token == 'w')
-          permissions |= 02; // запись
+          permissions |= 02;
         if (*token == 'x')
-          permissions |= 01; // выполнение
+          permissions |= 01;
         token++;
       }
       // token++;
