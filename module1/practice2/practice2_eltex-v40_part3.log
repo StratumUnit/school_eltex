@@ -1,0 +1,183 @@
+1-3. Зарегистрируйтесь на сайте github.com, если еще не сделали этого ранее
+Установите параметры git в соответствии с вашими учетными данными.
+
+root@eltex-practice2-v40:~# git config --global user.name "StratumUnit"
+root@eltex-practice2-v40:~# git config --global user.name "wotsis2005@gmail.com"
+root@eltex-practice2-v40:~# git config --global init.defaultBranch main
+root@eltex-practice2-v40:~# apt update
+root@eltex-practice2-v40:~# apt install git gh
+Reading package lists... Done
+Building dependency tree... Done
+Reading state information... Done
+git is already the newest version (1:2.43.0-1ubuntu7.3).
+
+4. Создайте ключ ssh
+
+root@eltex-practice2-v40:~/.ssh# ssh-keygen -t ed25519 -f ~/.ssh/eltex-v40
+Generating public/private ed25519 key pair.
+Enter passphrase (empty for no passphrase): 
+Enter same passphrase again: 
+Your identification has been saved in /root/.ssh/eltex-v40
+Your public key has been saved in /root/.ssh/eltex-v40.pub
+
+5. Подключите этот комьютер к github
+
+root@eltex-practice2-v40:~/.ssh# gh auth login
+? What account do you want to log into? GitHub.com
+? What is your preferred protocol for Git operations on this host? SSH
+? Upload your SSH public key to your GitHub account? /root/.ssh/eltex-v40.pub
+? Title for your SSH key: eltex-practice2-v40
+? How would you like to authenticate GitHub CLI? Login with a web browser
+
+! First copy your one-time code: F7A8-BCF1
+Press Enter to open github.com in your browser... 
+✓ Authentication complete.
+- gh config set -h github.com git_protocol ssh
+✓ Configured git protocol
+! Authentication credentials saved in plain text
+✓ Uploaded the SSH key to your GitHub account: /root/.ssh/eltex-v40.pub
+✓ Logged in as StratumUnit
+
+6-7. Укажите автоматическую авторизацию только для сайта github.com. Убедитесь, что всё в порядке
+
+root@eltex-practice2-v40:~/.ssh# gh auth setup-git --hostname github.com
+root@eltex-practice2-v40:~/.ssh# gh auth status
+github.com
+  ✓ Logged in to github.com account StratumUnit (/root/.config/gh/hosts.yml)
+  - Active account: true
+  - Git operations protocol: ssh
+  - Token: gho_************************************
+  - Token scopes: 'admin:public_key', 'gist', 'read:org', 'repo'
+
+8.  Создайте репозиторий на сервере github
+
+root@eltex-practice2-v40:~/.ssh# gh repo create --public eltex     
+✓ Created repository StratumUnit/eltex on GitHub
+  https://github.com/StratumUnit/eltex
+
+9. Наполним репозиторий
+
+root@eltex-practice2-v40:~# mkdir ~/eltex && cd ~/eltex
+root@eltex-practice2-v40:~/eltex# echo "# Практические работы для школы eltex" >> README.md
+
+root@eltex-practice2-v40:~/eltex# git init
+Initialized empty Git repository in /root/eltex/.git/
+root@eltex-practice2-v40:~/eltex# git add README.md
+
+root@eltex-practice2-v40:~/eltex# git commit -m "first commit"
+[main (root-commit) 3ca6833] first commit
+ 1 file changed, 1 insertion(+)
+ create mode 100644 README.md
+root@eltex-practice2-v40:~/eltex# git branch -M main
+
+iroot@eltex-practice2-v40:~/eltex# git remote add origin https://github.com/StratumUnit/eltex.git 
+git status      
+       2-v40:~/eltex# git push -u origin maingitgit         
+On branch main
+nothing to commit, working tree clean
+root@eltex-practice2-v40:~/eltex# git push -u origin main
+Enumerating objects: 3, done.
+Counting objects: 100% (3/3), done.
+Delta compression using up to 2 threads
+Compressing objects: 100% (2/2), done.
+Writing objects: 100% (3/3), 269 bytes | 269.00 KiB/s, done.
+Total 3 (delta 0), reused 0 (delta 0), pack-reused 0
+To https://github.com/StratumUnit/eltex.git
+ * [new branch]      main -> main
+branch 'main' set up to track 'origin/main'.
+
+
+root@eltex-practice2-v40:~/eltex# scp eltex-v40@172.16.8.4:/home/eltex-v40/eltex/module1/>
+The authenticity of host '172.16.8.4 (172.16.8.4)' can't be established.
+ED25519 key fingerprint is SHA256:9EeAnPIp/wDj41XS55iG0Eff5a90ZLW9TTAI37NiBb0.
+This key is not known by any other names.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? yes
+Warning: Permanently added '172.16.8.4' (ED25519) to the list of known hosts.
+eltex-v40@172.16.8.4's password: 
+eltex-v40_part.log                                       100% 8597   419.1KB/s   00:00    
+eltex-v40_part3.log                                      100%   12KB   1.8MB/s   00:00    
+eltex-v40_part3_gt20M.log                                100% 2629     2.8MB/s   00:00    
+root@eltex-practice2-v40:~/eltex# cd module1/task1
+root@eltex-practice2-v40:~/eltex/module1/task1# ls
+eltex-v40_part3_gt20M.log  eltex-v40_part3.log  eltex-v40_part.log
+
+
+root@eltex-practice2-v40:~/eltex/module1/task1# git add .
+root@eltex-practice2-v40:~/eltex/module1/task1# git status
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes to be committed:
+  (use "git restore --staged <file>..." to unstage)
+	new file:   eltex-v40_part.log
+	new file:   eltex-v40_part3.log
+	new file:   eltex-v40_part3_gt20M.log
+
+root@eltex-practice2-v40:~/eltex/module1/task1# git commit "task1"
+error: pathspec 'task1' did not match any file(s) known to git
+root@eltex-practice2-v40:~/eltex/module1/task1# git commit -m "task1"
+[main 05ba1cc] task1
+ 3 files changed, 467 insertions(+)
+ create mode 100644 module1/task1/eltex-v40_part.log
+ create mode 100755 module1/task1/eltex-v40_part3.log
+ create mode 100644 module1/task1/eltex-v40_part3_gt20M.log
+root@eltex-practice2-v40:~/eltex/module1/task1# git push
+Enumerating objects: 8, done.
+Counting objects: 100% (8/8), done.
+Delta compression using up to 2 threads
+Compressing objects: 100% (6/6), done.
+Writing objects: 100% (7/7), 6.52 KiB | 6.52 MiB/s, done.
+Total 7 (delta 0), reused 0 (delta 0), pack-reused 0
+To https://github.com/StratumUnit/eltex.git
+   3ca6833..05ba1cc  main -> main
+
+10. Клонируем репозиторий
+root@eltex-practice2-v40:~# mkdir ~/eltex_clone && cd ~/eltex_clone             
+root@eltex-practice2-v40:~# git clone https://github.com/StratumUnit/eltex.git .  
+
+11. Внесём изменения в основном каталоге, не забыв про git add/commit/push. Синхронизируем 
+клон репозитория с удалённым.
+
+root@eltex-practice2-v40:~# echo "Некоторые изменения" >> README.md 
+root@eltex-practice2-v40:~/eltex# git add .
+root@eltex-practice2-v40:~/eltex# git commit -m "change README"
+[main 8e11ae8] change README
+ 1 file changed, 1 insertion(+)
+root@eltex-practice2-v40:~/eltex# git push origin main
+
+root@eltex-practice2-v40:~/eltex# cd ~/eltex_clone/
+root@eltex-practice2-v40:~/eltex_clone# git fetch
+root@eltex-practice2-v40:~/eltex_clone# git log origin/main
+commit 8e11ae8fd8d21bda245d24ada04201f551c2e78a (origin/main, origin/HEAD)
+Author: wotsis2005@gmail.com <wotsis2005@gmail.com>
+Date:   Mon Jul 27 15:33:56 2026 +0000
+
+    change README
+
+commit 05ba1cc23dca17eb97825a67178bd6781d591764 (HEAD -> main)
+Author: wotsis2005@gmail.com <wotsis2005@gmail.com>
+Date:   Mon Jul 27 15:20:31 2026 +0000
+
+    task1
+
+commit 3ca6833cd64b3b10b7841acfd7b24c9205c9c696
+Author: wotsis2005@gmail.com <wotsis2005@gmail.com>
+Date:   Mon Jul 27 11:21:15 2026 +0000
+
+    first commit
+root@eltex-practice2-v40:~/eltex_clone# git diff main origin/main
+diff --git a/README.md b/README.md
+index b538d44..83b6f08 100644
+--- a/README.md
++++ b/README.md
+@@ -1 +1,2 @@
+ # Практические работы для школы eltex
++Некоторые изменения
+
+root@eltex-practice2-v40:~/eltex_clone# git merge
+Updating 05ba1cc..8e11ae8
+Fast-forward
+ README.md | 1 +
+ 1 file changed, 1 insertion(+)
+
+

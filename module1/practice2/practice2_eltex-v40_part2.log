@@ -1,0 +1,169 @@
+1.Найдите все записи из лога загрузки, доступного через команду journalctl с опцией -b в первые 20 секунд  с момента загрузки, начало загрузки определить автоматически.
+ 
+root@eltex-practice2-v40:~# startTime=$(uptime -s)
+root@eltex-practice2-v40:~# endTime=$(date -u -d "$(uptime -s) UTC + 20 seconds" '+ %F %T)
+
+root@eltex-practice2-v40:~# echo $endTime
+2026-07-09 15:10:10
+root@eltex-practice2-v40:~# echo $startTime
+2026-07-09 15:09:50
+
+root@eltex-practice2-v40:~# journalctl -b --since "$startTime" --until "$endTime"
+WARNING: terminal is not fully functional
+Press RETURN to continue 
+-- No entries --
+
+В первые 20 секунд никаких записей нет, выведем первые 20 записей
+
+root@eltex-practice2-v40:~# journalctl -b -o short-precise --utc | head -n 20
+
+Jul 09 15:10:42.714159 localhost kernel: Linux version 6.8.0-134-generic (buildd@lcy02-amd64-007) (x86_64-linux-gnu-gcc-13 (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0, GNU ld (GNU Binutils for Ubuntu) 2.42) #134-Ubuntu SMP PREEMPT_DYNAMIC Fri Jun 26 18:43:11 UTC 2026 (Ubuntu 6.8.0-134.134-generic 6.8.12)
+Jul 09 15:10:42.714214 localhost kernel: Command line: BOOT_IMAGE=/vmlinuz-6.8.0-134-generic root=/dev/mapper/ubuntu--vg-ubuntu--lv ro
+Jul 09 15:10:42.714225 localhost kernel: KERNEL supported cpus:
+Jul 09 15:10:42.714233 localhost kernel:   Intel GenuineIntel
+Jul 09 15:10:42.714241 localhost kernel:   AMD AuthenticAMD
+Jul 09 15:10:42.714249 localhost kernel:   Hygon HygonGenuine
+Jul 09 15:10:42.714260 localhost kernel:   Centaur CentaurHauls
+Jul 09 15:10:42.714269 localhost kernel:   zhaoxin   Shanghai  
+Jul 09 15:10:42.714277 localhost kernel: BIOS-provided physical RAM map:
+Jul 09 15:10:42.714284 localhost kernel: BIOS-e820: [mem 0x0000000000000000-0x000000000009fbff] usable
+Jul 09 15:10:42.714293 localhost kernel: BIOS-e820: [mem 0x000000000009fc00-0x000000000009ffff] reserved
+Jul 09 15:10:42.714301 localhost kernel: BIOS-e820: [mem 0x00000000000f0000-0x00000000000fffff] reserved
+Jul 09 15:10:42.714310 localhost kernel: BIOS-e820: [mem 0x0000000000100000-0x00000000bffd9fff] usable
+Jul 09 15:10:42.714318 localhost kernel: BIOS-e820: [mem 0x00000000bffda000-0x00000000bfffffff] reserved
+Jul 09 15:10:42.714328 localhost kernel: BIOS-e820: [mem 0x00000000feffc000-0x00000000feffffff] reserved
+Jul 09 15:10:42.714336 localhost kernel: BIOS-e820: [mem 0x00000000fffc0000-0x00000000ffffffff] reserved
+Jul 09 15:10:42.714346 localhost kernel: BIOS-e820: [mem 0x0000000100000000-0x000000013fffffff] usable
+Jul 09 15:10:42.714354 localhost kernel: BIOS-e820: [mem 0x000000fd00000000-0x000000ffffffffff] reserved
+Jul 09 15:10:42.714362 localhost kernel: NX (Execute Disable) protection: active
+Jul 09 15:10:42.714370 localhost kernel: APIC: Static calls initialized
+
+
+2. Используя awk найдите все источники и их сообщения в файле auth.log (найдите его find), в названии источника удалите информацию об идентификаторе процесса при помощи sed, полученный результат отсортируйте по названию источника
+
+
+root@eltex-practice2-v40:~# find / -name "auth.log"
+/var/log/auth.log
+
+awk '{ $1 =""; $2=""; print $0}' /var/log/auth.log | sed -e 's/\[[0-9]*\]//g' | sort 
+CRON: pam_unix(cron:session): session opened for user root(uid=0) by root(uid=0)
+  CRON: pam_unix(cron:session): session opened for user root(uid=0) by root(uid=0)
+  CRON: pam_unix(cron:session): session opened for user root(uid=0) by root(uid=0)
+  CRON: pam_unix(cron:session): session opened for user root(uid=0) by root(uid=0)
+  sshd: Accepted publickey for root from 172.16.8.4 port 39492 ssh2: RSA SHA256:92aLjfUPfWWWdRVB3QHFMC5eYY2yEBJ5Fgfa9jxbk1s
+  sshd: Accepted publickey for root from 172.16.8.4 port 55002 ssh2: RSA SHA256:92aLjfUPfWWWdRVB3QHFMC5eYY2yEBJ5Fgfa9jxbk1s
+  sshd: Accepted publickey for root from 172.16.8.4 port 55182 ssh2: RSA SHA256:92aLjfUPfWWWdRVB3QHFMC5eYY2yEBJ5Fgfa9jxbk1s
+  sshd: Disconnected from user root 172.16.8.4 port 55002
+  sshd: Disconnected from user root 172.16.8.4 port 55182
+  sshd: pam_unix(sshd:session): session closed for user root
+  sshd: pam_unix(sshd:session): session closed for user root
+  sshd: pam_unix(sshd:session): session opened for user root(uid=0) by root(uid=0)
+  sshd: pam_unix(sshd:session): session opened for user root(uid=0) by root(uid=0)
+  sshd: pam_unix(sshd:session): session opened for user root(uid=0) by root(uid=0)
+  sshd: Received disconnect from 172.16.8.4 port 55002:11: disconnected by user
+  sshd: Received disconnect from 172.16.8.4 port 55182:11: disconnected by user
+  systemd-logind: New session 1824 of user root.
+  systemd-logind: New session 2219 of user root.
+  systemd-logind: New session 2229 of user root.
+  systemd-logind: Removed session 1824.
+  systemd-logind: Removed session 2219.
+  systemd-logind: Session 1824 logged out. Waiting for processes to exit.
+  systemd-logind: Session 2219 logged out. Waiting for processes to exit.
+  (systemd): pam_unix(systemd-user:session): session opened for user root(uid=0) by root(uid=0)
+  (systemd): pam_unix(systemd-user:session): session opened for user root(uid=0) by root(uid=0)
+  (systemd): pam_unix(systemd-user:session): session opened for user root(uid=0) by root(uid=0)
+
+
+3. Для результата из предыдущего пункта найдите количество повторений для каждого источника
+и выведите их в виде списка «число_повторений источник», результат отсортируйте по убыванию количества повторений
+
+root@eltex-practice2-v40:~# awk '{ $1 =""; $2=""; print $0}' /var/log/auth.log | sed -e 's/\[[0-9]*\]//g' | sort > auth_sort.log
+
+root@eltex-practice2-v40:~# awk '{print $1}' auth_sort.log | sed 's/:$//' | uniq -c | sort -rn
+   122:exit
+ CRON
+     12 sshd
+      7 systemd-logind
+      3 (systemd)
+
+
+4.В файле /etc/passwd найдите всех пользователей в системе, у которых установлен shell /usr/sbin/nologin и выведите их в виде списка:
+«UID, username, список его групп», отсортированный в обратном порядке по UID, cписок групп используйте из файла /etc/group
+
+root@eltex-practice2-v40:~# awk -F'[:,]' 'NR==FNR {g[$3]=$1; for(i=4; i<=NF; i++) if($i!="") a[$i]=a[$i] "," $1; next} {print $3, $1, g[$4] a[$1]}' /etc/group /etc/passwd
+1 daemon daemon
+2 bin bin
+3 sys sys
+4 sync nogroup
+5 games games
+6 man man
+7 lp lp
+8 mail mail
+9 news news
+10 uucp uucp
+13 proxy proxy
+33 www-data www-data
+34 backup backup
+38 list list
+39 irc irc
+42 _apt nogroup
+65534 nobody nogroup
+998 systemd-network systemd-network
+997 systemd-timesync systemd-timesync
+100 dhcpcd nogroup
+101 messagebus messagebus
+992 systemd-resolve systemd-resolve
+102 pollinate daemon
+991 polkitd polkitd
+103 syslog syslog,adm
+104 uuidd uuidd
+105 tcpdump tcpdump
+106 tss tss
+107 landscape landscape
+989 fwupd-refresh fwupd-refresh
+108 usbmux plugdev
+109 sshd nogroup
+1000 tech tech,adm,cdrom,sudo,dip,plugdev,lxd
+1002 user2 user2,mygroup
+1003 user3 user3,mygroup
+1004 user1 user1,mygroup
+
+5. Найдите в результате вывода dmesg все строки, содержащие слово 'kernel‘.
+root@eltex-practice2-v40:~# dmesg | grep 'kernel'                                                                                                                                        
+[    0.096512] Booting paravirtualized kernel on KVM
+[    0.193148] Memory: 3925880K/4193760K available (22528K kernel code, 4439K rwdata, 14420K rodata, 4924K init, 4788K bss, 267620K reserved, 0K cma-reserved)
+[    0.683372] Loaded X.509 cert 'Build time autogenerated kernel key: 79aab6b364387381d7a5d225dcfcd094a654ef62'
+[    0.863758] Loaded X.509 cert 'Build time autogenerated kernel key: 79aab6b364387381d7a5d225dcfcd094a654ef62'
+[    0.895652] Freeing unused kernel image (initmem) memory: 4924K
+[    0.896653] Write protecting the kernel read-only data: 38912k
+[    0.898644] Freeing unused kernel image (rodata/data gap) memory: 1964K
+[   50.442651] systemd[1]: Listening on systemd-udevd-kernel.socket - udev Kernel Socket.
+[   50.811076] systemd[1]: Mounting sys-kernel-debug.mount - Kernel Debug File System...
+[   50.811988] systemd[1]: Mounting sys-kernel-tracing.mount - Kernel Trace File System...
+[   51.077445] systemd[1]: Mounting sys-kernel-config.mount - Kernel Configuration File System...
+[   51.264060] systemd[1]: Mounted sys-kernel-debug.mount - Kernel Debug File System.
+[   51.265225] systemd[1]: Mounted sys-kernel-tracing.mount - Kernel Trace File System.
+[   51.267462] systemd[1]: Mounted sys-kernel-config.mount - Kernel Configuration File System.
+
+6. Подсчитайте количество строк в файле /var/log/kern.log
+
+root@eltex-practice2-v40:~# wc -l /var/log/kern.log | awk '{print $1}'
+0
+
+7. Отформатируйте вывод записей в /var/log/apt/history.log в следующем порядке, построчно:
+Commandline: … ; Start-Date: … ; End-Date: …
+
+root@eltex-practice2-v40:~# paste -d ';' <(grep "^Commandline:" /var/log/apt/history.log) <(grep "^Start-Date:" /var/log/apt/history.log) <(grep "^End-Date:" /var/log/apt/history.log)
+Commandline: apt-get install --reinstall apt;Start-Date: 2025-02-16  20:51:22;End-Date: 2025-02-16  20:51:24
+Commandline: apt-get install --reinstall base-files;Start-Date: 2025-02-16  20:51:26;End-Date: 2025-02-16  20:51:28
+Commandline: apt-get install --reinstall base-passwd;Start-Date: 2025-02-16  20:51:31;End-Date: 2025-02-16  20:51:32
+Commandline: apt-get install --reinstall bash;Start-Date: 2025-02-16  20:51:35;End-Date: 2025-02-16  20:51:37
+Commandline: apt-get install --reinstall bsdutils;Start-Date: 2025-02-16  20:51:39;End-Date: 2025-02-16  20:51:41
+Commandline: apt-get install --reinstall coreutils;Start-Date: 2025-02-16  20:51:44;End-Date: 2025-02-16  20:51:45
+Commandline: apt-get install --reinstall dash;Start-Date: 2025-02-16  20:51:48;End-Date: 2025-02-16  20:51:49
+Commandline: apt-get install --reinstall debconf;Start-Date: 2025-02-16  20:51:52;End-Date: 2025-02-16  20:51:53
+Commandline: apt-get install --reinstall debianutils;Start-Date: 2025-02-16  20:51:56;End-Date: 2025-02-16  20:51:58
+Commandline: apt-get install --reinstall diffutils;Start-Date: 2025-02-16  20:52:00;End-Date: 2025-02-16  20:52:02
+Commandline: apt-get install --reinstall dpkg;Start-Date: 2025-02-16  20:52:04;End-Date: 2025-02-16  20:52:06
+Commandline: apt-get install --reinstall e2fsprogs;Start-Date: 2025-02-16  20:52:09;End-Date: 2025-02-16  20:52:10
+Commandline: apt-get install --reinstall findutils;Start-Date: 2025-02-16  20:52:13;End-Date: 2025-02-16  20:52:14
