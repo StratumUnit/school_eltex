@@ -3,9 +3,13 @@ CFLAGS := -Isrc -Wall
 
 OBJ_DIR := obj
 BIN_DIR := bin
-SRC_DIR := .
+SRC_DIR := src
 
-all: $(BIN_DIR)/queueProgram
+all: $(BIN_DIR)/queueProgram $(BIN_DIR)/testProgram
+
+$(BIN_DIR)/testProgram: $(OBJ_DIR)/test.o $(OBJ_DIR)/queue.o $(OBJ_DIR)/unity.o 
+	@mkdir -p $(BIN_DIR)
+	gcc $^ -o $@
 
 $(BIN_DIR)/queueProgram: $(OBJ_DIR)/main.o $(OBJ_DIR)/queue.o
 	@mkdir -p $(BIN_DIR)
