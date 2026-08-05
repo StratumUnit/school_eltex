@@ -53,7 +53,7 @@ void *recive_msg(void *type)
         buf[bytes] = '\0';
 
         if (msg_prio == EXIT_PRIORITY)
-        {
+        {   
             printf("\nСобеседник завершил работу\n");
             kill(getpid(), SIGINT);
             keep_running = 0;
@@ -89,7 +89,7 @@ int creator_func()
     mq_send(queue_d2, "END", 4, EXIT_PRIORITY);
     mq_close(queue_d1);
     mq_close(queue_d2);
-    pthread_join(tid, NULL);
+    pthread_join(tid, NULL);    
     return 0;
 }
 
@@ -106,7 +106,6 @@ int client_func()
         printf(">");
         if (fgets(buf, BUF_SIZE, stdin) == NULL)
             break;
-        // buf[strcspn(buf, "\n")] = '\0';
         if (mq_send(queue_d1, buf, strlen(buf) + 1, PRIORITY) == -1)
         {
             perror("Ошибка отправки сообщения");
