@@ -13,6 +13,8 @@
 #define BUF_SIZE 8192
 #define PRIORITY 1
 #define EXIT_PRIORITY 32
+#define NAME_SIZE 256
+#define FULL_NAME_SIZE 260
 volatile sig_atomic_t keep_running = 1;
 
 mqd_t queue_d1;
@@ -80,11 +82,12 @@ int creator_func()
             break;
         if (mq_send(queue_d2, buf, strlen(buf) + 1, PRIORITY) == -1)
         {
+
             perror("Ошибка отправки сообщения");
             return -1;
         }
     }
-    printf("Создатель тут");
+
     fflush(stdout);
     mq_send(queue_d2, "END", 4, EXIT_PRIORITY);
     mq_close(queue_d1);
@@ -106,7 +109,6 @@ int client_func()
         printf(">");
         if (fgets(buf, BUF_SIZE, stdin) == NULL)
             break;
-        // buf[strcspn(buf, "\n")] = '\0';
         if (mq_send(queue_d1, buf, strlen(buf) + 1, PRIORITY) == -1)
         {
             perror("Ошибка отправки сообщения");
@@ -116,6 +118,7 @@ int client_func()
     mq_send(queue_d1, "EOF", 4, EXIT_PRIORITY);
     mq_close(queue_d1);
     mq_close(queue_d2);
+
     pthread_join(tid, NULL);
     return 0;
 }
@@ -123,12 +126,9 @@ int client_func()
 int main(int argc, char *argv[])
 {
 
-    proccess_type type;
-    char queue_name[256];
-    char name1[260];
-    char name2[260];
-    struct mq_attr attr1;
-    struct mq_attr attr2;
+    char queue_name[NAME_SIZE];
+    char name1[FULL_NAME_SIZE];
+    char name2[NAME_SIZE];
     if (argc == 1)
     {
         fprintf(stderr, "Не указано имя очереди\n");
@@ -141,11 +141,16 @@ int main(int argc, char *argv[])
     sa.sa_flags = 0;
     sigaction(SIGINT, &sa, NULL);
 
-    strncpy(queue_name, argv[1], 256);
-    snprintf(name1, 260, "%s_1", queue_name);
-    snprintf(name2, 260, "%s_2", queue_name);
+    strncpy(queue_name, argv[1], NAME_SIZE);
+    if (queue_name[0] != '/')
+    {
+        snprintf(name1, FULL_NAME_SIZE, "/%s_1", queue_name);
+        snprintf(name2, FULL_NAME_SIZE, "/%s_2", queue_name);
+    }
+    snprintf(name1, FULL_NAME_SIZE, "%s_1", queue_name);
+    snprintf(name2, FULL_NAME_SIZE, "%s_2", queue_name);
 
-    queue_d1 = mq_open(name1, O_RDWR | O_CREAT | O_EXCL, 0644, NULL);
+    queue_d1 = mq_open(name1, O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR, NULL);
 
     if (queue_d1 == (mqd_t)-1)
     {
@@ -156,7 +161,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    queue_d2 = mq_open(name2, O_RDWR | O_CREAT | O_EXCL, 0644, NULL);
+    queue_d2 = mq_open(name2, O_RDWR | O_CREAT | O_EXCL, S_IRUSR | S_IWUSR, NULL);
 
     if (queue_d2 == (mqd_t)-1)
     {
@@ -169,7 +174,6 @@ int main(int argc, char *argv[])
 
     if (queue_d1 != (mqd_t)-1 && queue_d2 != (mqd_t)-1) // Очереди создались, значит это процесс СОЗДАТЕЛЬ
     {
-        type = CREATOR;
         creator_func();
         mq_unlink(name1);
         mq_unlink(name2);
@@ -177,7 +181,7 @@ int main(int argc, char *argv[])
     else // Возникла ошибка EEXIST - процесс КЛИЕНТ
     {
 
-        queue_d1 = mq_open(name1, O_RDWR, 0644, NULL);
+        queue_d1 = mq_open(name1, O_RDWR, S_IRUSR | S_IWUSR, NULL);
 
         if (queue_d1 == (mqd_t)-1)
         {
@@ -186,7 +190,7 @@ int main(int argc, char *argv[])
             exit(EXIT_FAILURE);
         }
 
-        queue_d2 = mq_open(name2, O_RDWR, 0644, NULL);
+        queue_d2 = mq_open(name2, O_RDWR, S_IRUSR | S_IWUSR, NULL);
 
         if (queue_d2 == (mqd_t)-1)
         {
@@ -195,7 +199,6 @@ int main(int argc, char *argv[])
             exit(EXIT_FAILURE);
         }
 
-        type = CLIENT;
         client_func();
     }
 }
