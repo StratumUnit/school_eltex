@@ -36,10 +36,21 @@ struct msgbuf
 const char *FILE_PATH = "/tmp/mq_file";
 
 volatile sig_atomic_t should_terminate = 0;
-
+volatile sig_atomic_t pub_should_terminate = 0;
+volatile sig_atomic_t sub_should_terminate = 0;
 void sigint_handler(int signum)
 {
   should_terminate = 1;
+}
+
+void sigint_handler_pub(int signum)
+{
+  pub_should_terminate = 1;
+}
+
+void sigint_handler_sub(int signum)
+{
+  sub_should_terminate = 1;
 }
 
 int add_pid(struct pid_node **root, pid_t pid)
@@ -150,30 +161,20 @@ int parse_broker_message(const char *mtext,
                          const char **out_payload)
 {
 
-  if (sscanf(mtext, "%15[^,],%d,%127[^,]", out_cmd, out_pid, out_topic) < 3)
+  if (sscanf(mtext, "%[^,],%d,%[^\n]", out_cmd, out_pid, out_topic) < 3)
   {
     return -1;
   }
 
-  const char *ptr = mtext;
-  int comma_count = 0;
+  const char *ptr = strchr(mtext, '\n');
 
-  while (*ptr != '\0' && comma_count < 3)
-  {
-    if (*ptr == ',')
-    {
-      comma_count++;
-    }
-    ptr++;
-  }
-
-  if (comma_count < 3)
+  if (ptr == NULL)
   {
     *out_payload = "";
   }
   else
   {
-    *out_payload = ptr;
+    *out_payload = ptr + 1;
   }
 
   return 0;
@@ -353,6 +354,143 @@ void send_msg(int msqid, struct msgbuf *msgp, size_t msgsz, int msgflg)
   }
 }
 
+// Издатель
+int publisher_func(const char *topic_name)
+{
+
+  struct sigaction sa;
+  memset(&sa, 0, sizeof(sa));
+  sa.sa_handler = sigint_handler_pub;
+  sigemptyset(&sa.sa_mask);
+  sa.sa_flags = 0;
+
+  if (sigaction(SIGINT, &sa, NULL) == -1)
+  {
+    perror("sigaction failed");
+    return -1;
+  }
+
+  key_t key = ftok(FILE_PATH, 'a');
+  if (key == -1)
+  {
+    perror("Ошибка:");
+    return 1;
+  }
+
+  int msqid;
+  msqid = msgget(key, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
+  if (msqid == -1)
+  {
+    perror("Ошибка подключения к очереди");
+  }
+
+  pid_t pid = getpid();
+  struct msgbuf msg;
+  msg.mtype = 1;
+  char input[N];
+
+  while (!pub_should_terminate)
+  {
+    if (fgets(input, sizeof(input), stdin) == NULL)
+    {
+      break;
+    }
+    input[strcspn(input, "\n")] = '\0';
+
+    if (strlen(input) == 0)
+    {
+      continue;
+    }
+
+    snprintf(msg.mtext, sizeof(msg.mtext), "send,%d,%s\n%s", pid, topic_name, input);
+
+    if (msgsnd(msqid, &msg, strlen(msg.mtext) + 1, 0) == -1)
+    {
+      perror("Ошибка отправки сообщения издателем");
+      break;
+    }
+  }
+  printf("Завершение работы издателя");
+  return 0;
+}
+
+// Подписчик
+
+int subscriber_func(int argc, char *argv[])
+{
+
+  struct sigaction sa;
+  memset(&sa, 0, sizeof(sa));
+  sa.sa_handler = sigint_handler_sub;
+  sigemptyset(&sa.sa_mask);
+  sa.sa_flags = 0;
+
+  if (sigaction(SIGINT, &sa, NULL) == -1)
+  {
+    perror("sigaction failed");
+    return -1;
+  }
+
+  key_t key = ftok(FILE_PATH, 'a');
+  if (key == -1)
+  {
+    perror("Ошибка:");
+    return 1;
+  }
+
+  int msqid;
+  msqid = msgget(key, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP);
+  if (msqid == -1)
+  {
+    perror("Ошибка подключения к очереди");
+  }
+
+  pid_t pid = getpid();
+  struct msgbuf msg;
+
+  // Цикл подписки на темы
+  for (int i = 2; i < argc; i++)
+  {
+    snprintf(msg.mtext, sizeof(msg.mtext), "subscribe,%d,%s", pid, argv[i]);
+    msg.mtype = 1;
+    if (msgsnd(msqid, &msg, strlen(msg.mtext) + 1, 0) == -1)
+    {
+      perror("Ошибка подписки");
+      return -1;
+    }
+  }
+  struct msgbuf buf;
+  buf.mtype = pid;
+  while (!sub_should_terminate)
+  {
+    ssize_t bytes = msgrcv(msqid, &buf, sizeof(buf.mtext), pid, 0);
+    if (bytes == -1)
+    {
+
+      if (errno == EINTR || errno == EIDRM)
+      {
+        break;
+      }
+      perror("Ошибка msgrcv");
+      break;
+    }
+    printf("Пришло сообщение: %s\n", buf.mtext);
+  }
+
+  for (int i = 2; i < argc; i++)
+  {
+    snprintf(msg.mtext, sizeof(msg.mtext), "unsubscribe,%d,%s", pid, argv[i]);
+    msg.mtype = 1;
+    if (msgsnd(msqid, &msg, strlen(msg.mtext), 0) == -1)
+    {
+      perror("Ошибка отписки");
+      return -1;
+    }
+    printf("Сообщение отписки отправлено\n");
+  }
+  return 0;
+}
+
 int main(int argc, char *argv[])
 {
   if (argc < 2)
@@ -366,11 +504,19 @@ int main(int argc, char *argv[])
   }
   else if (strcmp(argv[1], "-p") == 0)
   {
+    if (argc == 3)
+    {
+      publisher_func(argv[2]);
+    }
+    else
+    {
+      printf("Передайте в качестве аргумента тему сообщения\n");
+    }
     // publisher_func();
   }
   else if (strcmp(argv[1], "-s") == 0)
   {
-    // subscriber_func();
+    subscriber_func(argc, argv);
   }
   return 0;
 }
