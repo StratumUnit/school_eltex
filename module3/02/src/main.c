@@ -481,7 +481,7 @@ int subscriber_func(int argc, char *argv[])
   {
     snprintf(msg.mtext, sizeof(msg.mtext), "unsubscribe,%d,%s", pid, argv[i]);
     msg.mtype = 1;
-    if (msgsnd(msqid, &msg, strlen(msg.mtext), 0) == -1)
+    if (msgsnd(msqid, &msg, strlen(msg.mtext) + 1, 0) == -1)
     {
       perror("Ошибка отписки");
       return -1;
@@ -512,7 +512,6 @@ int main(int argc, char *argv[])
     {
       printf("Передайте в качестве аргумента тему сообщения\n");
     }
-    // publisher_func();
   }
   else if (strcmp(argv[1], "-s") == 0)
   {
