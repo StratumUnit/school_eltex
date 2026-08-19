@@ -128,7 +128,7 @@ int main(int argc, char *argv[])
     {
         struct msg textMsg;
         textMsg.type = 1;
-        strcpy(name, textMsg.nickname);
+        strncpy(textMsg.nickname, name, NAME_LEN - 1);
         if (fgets(textMsg.text, sizeof(textMsg.text), stdin) == NULL)
         {
             break;
@@ -144,7 +144,7 @@ int main(int argc, char *argv[])
 
     struct msg exitMsg;
     exitMsg.type = 2;
-    strcpy(name, exitMsg.nickname);
+    strncpy(exitMsg.nickname, name, NAME_LEN - 1);
     bytes_sent = sendto(udp_socket, &exitMsg, sizeof(exitMsg), 0, (struct sockaddr *)&broadcast_addr, sizeof(broadcast_addr));
     if (bytes_sent == -1)
     {
