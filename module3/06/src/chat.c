@@ -50,7 +50,7 @@ void *recvMsg(void *arg)
             printf("Новый пользователь чата %s [%s]\n", received_msg.nickname, sender_ip);
             break;
         case 1:
-            printf("[%s] %s\n", sender_ip, received_msg.text);
+            printf("%s [%s]: %s\n", received_msg.nickname, sender_ip, received_msg.text);
             break;
         case 2:
             printf("Пользователь %s [%s] отключился от чата\n", received_msg.nickname, sender_ip);
@@ -144,6 +144,7 @@ int main(int argc, char *argv[])
 
     struct msg exitMsg;
     exitMsg.type = 2;
+    strcpy(name, exitMsg.nickname);
     bytes_sent = sendto(udp_socket, &exitMsg, sizeof(exitMsg), 0, (struct sockaddr *)&broadcast_addr, sizeof(broadcast_addr));
     if (bytes_sent == -1)
     {
