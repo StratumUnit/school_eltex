@@ -89,12 +89,15 @@ sys_init(void)
     {
         pr_info("failed to create the sysfs file\n");
         kobject_put(kobj);
+        return error;
     }
-    return error;
+    pr_info("Module initialized successfully \n");
+    return 0;
 }
 
 static void __exit sys_exit(void)
 {
+    
     set_leds(RESTORE_LEDS);
     kobject_put(kobj);
     pr_info("Module uninitialized successfully \n");
